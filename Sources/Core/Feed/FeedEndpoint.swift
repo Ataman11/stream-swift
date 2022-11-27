@@ -88,8 +88,9 @@ enum FeedEndpoint {
     case deleteByForeignId(_ foreignId: String, feedId: FeedId)
     case follow(_ feedId: FeedId, target: FeedId, activityCopyLimit: Int)
     case unfollow(_ feedId: FeedId, target: FeedId, keepHistory: Bool)
-    case followers(_ feedId: FeedId, offset: Int, limit: Int)
+    case followers(_ feedId: FeedId, filter: FeedIds, offset: Int, limit: Int)
     case following(_ feedId: FeedId, filter: FeedIds, offset: Int, limit: Int)
+    case followStats(_ feedId: FeedId)
 }
 
 extension FeedEndpoint: StreamTargetType {
@@ -111,17 +112,19 @@ extension FeedEndpoint: StreamTargetType {
         case let .unfollow(feedId, target, _):
             return "feed/\(feedId.togetherWithSlash)/follows/\(target.description)/"
             
-        case .followers(let feedId, _, _):
+        case .followers(let feedId, _, _, _):
             return "feed/\(feedId.togetherWithSlash)/followers/"
             
         case .following(let feedId, _, _, _):
             return "feed/\(feedId.togetherWithSlash)/follows/"
+        case .followStats:
+            return "stats/follow/"
         }
     }
     
     var method: Moya.Method {
         switch self {
-        case .get, .followers, .following:
+        case .get, .followers, .following, .followStats:
             return .get
         case .follow:
             return .post
@@ -178,8 +181,17 @@ extension FeedEndpoint: StreamTargetType {
             
             return .requestPlain
             
-        case let .followers(_, offset, limit):
-            return .requestParameters(parameters: ["limit": limit, "offset": offset], encoding: URLEncoding.default)
+        case let .followers(_, filter, offset, limit):
+            var parameters: [String: Any] = ["limit": limit, "offset": offset]
+            
+            if !filter.isEmpty {
+                parameters["filter"] = filter.value
+            }
+            
+            return .requestParameters(parameters: parameters, encoding: URLEncoding.default)
+            
+        case .followStats(let feedId):
+            return .requestParameters(parameters: ["followers": feedId, "following": feedId], encoding: URLEncoding.default)
             
         case let .following(_, filter, offset, limit):
             var parameters: [String: Any] = ["limit": limit, "offset": offset]
@@ -235,7 +247,7 @@ extension FeedEndpoint: StreamTargetType {
         case let .unfollow(_, target, keepHistory):
             return keepHistory ? "[]" : (target.description == "s2:u2" ? "{}" : "")
             
-        case .followers(let feedId, _, _):
+        case .followers(let feedId, _, _, _):
             return """
             {"results": [
             {"feed_id": "\(feedId.togetherWithColon)",
@@ -250,6 +262,15 @@ extension FeedEndpoint: StreamTargetType {
             {"feed_id": "\(feedId.togetherWithColon)",
             "target_id": "s2:u2",
             "created_at": "2018-11-14T15:54:45.268000Z"}
+            ]}
+            """
+        case .followStats(let feedId):
+            return """
+            {"results": [
+            {"followers": {"feed":"\(feedId.togetherWithColon)",
+            "count":1529},
+            "following": {"feed":"\(feedId.togetherWithColon)",
+            "count":81}}
             ]}
             """
         }

@@ -48,6 +48,15 @@ extension Feed {
         }
     }
     
+    @discardableResult
+    public func followStats(completion: @escaping FollowStatsCompletion) -> Cancellable {
+        return Client.shared.request(endpoint: FeedEndpoint.followStats(feedId)) { [weak self] result in
+            if let self = self {
+                result.parse(self.callbackQueue, completion)
+            }
+        }
+    }
+    
     /// Returns a paginated list of followers.
     ///
     /// - Parameters:
@@ -57,11 +66,14 @@ extension Feed {
     /// - Note: the number of followers that can be retrieved is limited to 1000.
     /// - Returns: an object to cancel the request.
     @discardableResult
-    public func followers(offset: Int = 0, limit: Int = 25, completion: @escaping FollowersCompletion) -> Cancellable {
+    public func followers(filter: FeedIds = [],
+                          offset: Int = 0,
+                          limit: Int = 25,
+                          completion: @escaping FollowersCompletion) -> Cancellable {
         let limit = max(0, min(500, limit))
         let offset = max(0, min(400, offset))
         
-        return Client.shared.request(endpoint: FeedEndpoint.followers(feedId, offset: offset, limit: limit)) { [weak self] result in
+        return Client.shared.request(endpoint: FeedEndpoint.followers(feedId, filter: filter, offset: offset, limit: limit)) { [weak self] result in
             if let self = self {
                 result.parse(self.callbackQueue, completion)
             }

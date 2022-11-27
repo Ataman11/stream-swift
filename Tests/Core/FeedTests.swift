@@ -170,6 +170,22 @@ final class FeedTests: TestCase {
         }
     }
     
+    func testFeedFollowStats() {
+        expect("followStats") { test in
+            let feedId = FeedId(feedSlug: "s1", userId: "u1")
+            Client.shared.flatFeed(feedId).followStats(completion: { result in
+                switch result {
+                case .success(let response):
+                    XCTAssertEqual(response.results.first?.following.count, 81)
+                    XCTAssertEqual(response.results.first?.following.feedId, FeedId(feedSlug: "s1", userId: "u1"))
+                    test.fulfill()
+                case .failure(let error):
+                    XCTFail(error.localizedDescription)
+                }
+            })
+        }
+    }
+    
     // MARK: - FeedId tests
 
     func testFeedId() {
