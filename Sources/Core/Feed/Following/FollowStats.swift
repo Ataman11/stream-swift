@@ -9,8 +9,24 @@ import Foundation
 
 /// A feed follow stats.
 public struct FollowStats: Decodable {
-    public let followers: FollowStat
-    public let following: FollowStat
+    
+    enum CodingKeys: CodingKey {
+        case results
+    }
+    
+    private let results: InnterFollowStats
+    
+    private struct InnterFollowStats: Decodable {
+        let followers: FollowStat
+        let following: FollowStat
+    }
+    
+    public var followers: FollowStat {
+        results.followers
+    }
+    public var following: FollowStat {
+        results.following
+    }
 }
 
 public struct FollowStat: Decodable {

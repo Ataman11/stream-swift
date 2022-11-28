@@ -15,7 +15,7 @@ typealias ActivityResponse = EnrichedActivity<String, String, DefaultReaction>
 public typealias FollowersCompletion = (_ result: Result<Response<Follower>, ClientError>) -> Void
 
 /// A followers completion block.
-public typealias FollowStatsCompletion = (_ result: Result<Response<FollowStats>, ClientError>) -> Void
+public typealias FollowStatsCompletion = (_ result: Result<FollowStats, ClientError>) -> Void
 
 /// A superclass for feeds: `FlatFeed`, `AggregatedFeed` and `NotificationFeed`.
 public class Feed: CustomStringConvertible {
