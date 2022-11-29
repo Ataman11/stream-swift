@@ -14,9 +14,9 @@ public struct FollowStats: Decodable {
         case results
     }
     
-    private let results: InnterFollowStats
+    private let results: InternalFollowStats
     
-    private struct InnterFollowStats: Decodable {
+    private struct InternalFollowStats: Decodable {
         let followers: FollowStat
         let following: FollowStat
     }
